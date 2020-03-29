@@ -6,8 +6,8 @@ import TitleScene from "scenes/TitleScene";
 const config: Phaser.Types.Core.GameConfig = {
   title: "Tower Battle",
   version: "1.0",
-  width: 640,
-  height: 1136,
+  width: 256,
+  height: 272,
   type: Phaser.AUTO,
   parent: "game",
   scene: [BootScene, TitleScene],
