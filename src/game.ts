@@ -1,22 +1,27 @@
 import "phaser";
-import { MainScene } from "scenes/MainScene";
+import BootScene from "scenes/BootScene";
+import TitleScene from "scenes/TitleScene";
 
 // main game configuration
 const config: Phaser.Types.Core.GameConfig = {
-  width: 800,
-  height: 600,
+  title: "Tower Battle",
+  version: "1.0",
+  width: 640,
+  height: 1136,
   type: Phaser.AUTO,
   parent: "game",
-  scene: MainScene,
+  scene: [BootScene, TitleScene],
+  backgroundColor: "#222222",
+  render: { pixelArt: false, antialias: true },
 };
 
-export class Game extends Phaser.Game {
+class Game extends Phaser.Game {
   constructor(config: Phaser.Types.Core.GameConfig) {
     super(config);
   }
 }
 
 // when the page is loaded, create our game instance
-window.addEventListener("load", () => {
+window.onload = () => {
   const game = new Game(config);
-});
+};
