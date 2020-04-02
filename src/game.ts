@@ -2,6 +2,13 @@ import "phaser";
 import BootScene from "scenes/BootScene";
 import TitleScene from "scenes/TitleScene";
 
+export interface GameSetting {
+  playerSpeed: number;
+}
+export const gameSettings = {
+  playerSpeed: 200,
+};
+
 // main game configuration
 const config: Phaser.Types.Core.GameConfig = {
   title: "Tower Battle",
@@ -13,6 +20,13 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [BootScene, TitleScene],
   backgroundColor: "#222222",
   render: { pixelArt: false, antialias: true },
+
+  physics: {
+    default: "arcade",
+    arcade: {
+      debug: false,
+    },
+  },
 };
 
 class Game extends Phaser.Game {
