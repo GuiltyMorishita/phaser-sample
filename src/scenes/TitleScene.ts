@@ -6,6 +6,7 @@ export default class TitleScene extends Phaser.Scene {
   private ship1!: Phaser.GameObjects.Sprite;
   private ship2!: Phaser.GameObjects.Sprite;
   private ship3!: Phaser.GameObjects.Sprite;
+  private enemiges!: Phaser.Physics.Arcade.Group;
   private powerUps!: Phaser.Physics.Arcade.Group;
   private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
   private spacebar!: Phaser.Input.Keyboard.Key;
@@ -33,60 +34,65 @@ export default class TitleScene extends Phaser.Scene {
     );
     this.background.setOrigin(0, 0);
 
-    // this.ship1 = this.add.sprite(
-    //   this.sys.canvas.width / 2 - 50,
-    //   this.sys.canvas.height / 2,
-    //   "ship1"
-    // );
-    // this.ship2 = this.add.sprite(
-    //   this.sys.canvas.width / 2,
-    //   this.sys.canvas.height / 2,
-    //   "ship2"
-    // );
-    // this.ship3 = this.add.sprite(
-    //   this.sys.canvas.width / 2 + 50,
-    //   this.sys.canvas.height / 2,
-    //   "ship3"
-    // );
-    //
-    // this.powerUps = this.physics.add.group();
-    //
-    // const maxObjects = 4;
-    // for (let i = 0; i <= maxObjects; i++) {
-    //   const powerUp = this.physics.add.sprite(16, 16, "power-up");
-    //   this.powerUps.add(powerUp);
-    //   powerUp.setRandomPosition(
-    //     0,
-    //     0,
-    //     this.game.config.width as number,
-    //     this.game.config.height as number
-    //   );
-    //
-    //   if (Math.random() > 0.5) {
-    //     powerUp.play("red");
-    //   } else {
-    //     powerUp.play("gray");
-    //   }
-    //
-    //   powerUp.setVelocity(100, 100);
-    //   powerUp.setCollideWorldBounds(true);
-    //   powerUp.setBounce(1);
-    // }
-    //
-    // this.ship1.play("ship1_anim");
-    // this.ship2.play("ship2_anim");
-    // this.ship3.play("ship3_anim");
-    //
-    // this.ship1.setInteractive();
-    // this.ship2.setInteractive();
-    // this.ship3.setInteractive();
-    //
-    // this.input.on("gameobjectdown", this.destroyShip, this);
+    this.ship1 = this.add.sprite(
+      this.sys.canvas.width / 2 - 50,
+      this.sys.canvas.height / 2,
+      "ship1"
+    );
+    this.ship2 = this.add.sprite(
+      this.sys.canvas.width / 2,
+      this.sys.canvas.height / 2,
+      "ship2"
+    );
+    this.ship3 = this.add.sprite(
+      this.sys.canvas.width / 2 + 50,
+      this.sys.canvas.height / 2,
+      "ship3"
+    );
 
-    // this.add.text(20, 20, "Playing game", {
-    //   font: "25px Arial",
-    //   fill: "yellow",
-    // });
+    this.enemiges = this.physics.add.group();
+    this.enemiges.add(this.ship1);
+    this.enemiges.add(this.ship2);
+    this.enemiges.add(this.ship3);
+
+    this.ship1.play("ship1_anim");
+    this.ship2.play("ship2_anim");
+    this.ship3.play("ship3_anim");
+
+    this.ship1.setInteractive();
+    this.ship2.setInteractive();
+    this.ship3.setInteractive();
+
+    this.powerUps = this.physics.add.group();
+
+    const maxObjects = 4;
+    for (let i = 0; i <= maxObjects; i++) {
+      const powerUp = this.physics.add.sprite(16, 16, "power-up");
+      this.powerUps.add(powerUp);
+      powerUp.setRandomPosition(
+        0,
+        0,
+        this.game.config.width as number,
+        this.game.config.height as number
+      );
+
+      if (Math.random() > 0.5) {
+        powerUp.play("red");
+      } else {
+        powerUp.play("gray");
+      }
+
+      powerUp.setVelocity(100, 100);
+      powerUp.setCollideWorldBounds(true);
+      powerUp.setBounce(1);
+    }
+
+    this.input.on("gameobjectdown", this.destroyShip, this);
+
+    this.add.text(20, 20, "Playing game", {
+      font: "25px Arial",
+      fill: "yellow",
+    });
 
     this.player = this.physics.add.sprite(
       (this.game.config.width as number) / 2 - 8,
@@ -102,6 +108,64 @@ export default class TitleScene extends Phaser.Scene {
     );
 
     this.projectiles = this.add.group();
+
+    this.physics.add.collider(
+      this.projectiles,
+      this.powerUps,
+      (projectiles) => {
+        projectiles.destroy();
+      }
+    );
+
+    this.physics.add.overlap(
+      this.player,
+      this.powerUps,
+      this.pickPowerUp,
+      undefined,
+      this
+    );
+
+    this.physics.add.overlap(
+      this.player,
+      this.enemiges,
+      this.hurtPlayer,
+      undefined,
+      this
+    );
+
+    this.physics.add.overlap(
+      this.projectiles,
+      this.enemiges,
+      this.hitEnemy,
+      undefined,
+      this
+    );
+  }
+
+  private pickPowerUp(
+    _player: Phaser.GameObjects.GameObject,
+    powerUp: Phaser.GameObjects.GameObject
+  ) {
+    (powerUp as Phaser.Physics.Arcade.Sprite).disableBody(true, true);
+  }
+
+  private hurtPlayer(
+    player: Phaser.GameObjects.GameObject,
+    enemy: Phaser.GameObjects.GameObject
+  ) {
+    this.resetShipPos(enemy as Phaser.GameObjects.Sprite);
+
+    const p = player as Phaser.GameObjects.Sprite;
+    p.x = (this.game.config.width as number) / 2 - 8;
+    p.y = (this.game.config.height as number) - 64;
+  }
+
+  private hitEnemy(
+    projectile: Phaser.GameObjects.GameObject,
+    enemy: Phaser.GameObjects.GameObject
+  ) {
+    projectile.destroy();
+    this.resetShipPos(enemy as Phaser.GameObjects.Sprite);
   }
 
   update(): void {
@@ -140,14 +204,14 @@ export default class TitleScene extends Phaser.Scene {
     const beam = new Beam(this);
   }
 
-  private moveShip(ship: Phaser.GameObjects.Image, speed: number) {
+  private moveShip(ship: Phaser.GameObjects.Sprite, speed: number) {
     ship.y += speed;
     if (ship.y > this.sys.canvas.height) {
       this.resetShipPos(ship);
     }
   }
 
-  private resetShipPos(ship: Phaser.GameObjects.Image) {
+  private resetShipPos(ship: Phaser.GameObjects.Sprite) {
     ship.y = 0;
     const randomX = Phaser.Math.Between(0, this.sys.canvas.width);
     ship.x = randomX;
